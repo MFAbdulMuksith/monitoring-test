@@ -1,0 +1,119 @@
+groups:
+  - name: example-alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_user_seconds_total{container!="",container!="POD"}[1m]) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage detected in container {{ $labels.container }} on {{ $labels.instance }}"
+          description: "CPU usage for container {{ $labels.container }} exceeds 90% on instance {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes{container!="",container!="POD"} / container_spec_memory_limit_bytes{container!="",container!="POD"} > 0.8
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Memory usage detected in container {{ $labels.container }} on {{ $labels.instance }}"
+          description: "Memory usage for container {{ $labels.container }} exceeds 80% of the limit on instance {{ $labels.instance }}."
+
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space detected on {{ $labels.instance }}"
+          description: "Available disk space on {{ $labels.instance }} is less than 10%."
+
+      - alert: HighDiskIO
+        expr: rate(node_disk_write_bytes_total[5m]) + rate(node_disk_read_bytes_total[5m]) > 1000000000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High disk I/O detected on {{ $labels.instance }}"
+          description: "Disk I/O on {{ $labels.instance }} exceeds 1GB per minute."
+
+      - alert: NodeDown
+        expr: up{job="node"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node down alert for {{ $labels.instance }}"
+          description: "Node {{ $labels.instance }} is down for more than 10 minutes."
+
+      - alert: ServiceDown
+        expr: up{job="prometheus"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus service down"
+          description: "Prometheus service on instance {{ $labels.instance }} has been down for more than 10 minutes."
+
+      - alert: HighLoad
+        expr: node_load1{job="node"} > 1.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High load detected on {{ $labels.instance }}"
+          description: "Load average on {{ $labels.instance }} is higher than 1.5 over the last 1 minute."
+
+      - alert: HighNetworkUsage
+        expr: rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m]) > 500000000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High network usage detected on {{ $labels.instance }}"
+          description: "Network usage on {{ $labels.instance }} exceeds 500MB per minute."
+
+      - alert: DiskUsageCritical
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "The filesystem on {{ $labels.instance }} has less than 10% free space."
+
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus is down on {{ $labels.instance }}"
+          description: "Prometheus instance {{ $labels.instance }} has not been responding for the last 10 minutes."
+
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alertmanager is down on {{ $labels.instance }}"
+          description: "Alertmanager instance {{ $labels.instance }} is down for more than 10 minutes."
+
+      - alert: GrafanaDown
+        expr: up{job="grafana"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Grafana service is down on {{ $labels.instance }}"
+          description: "Grafana service on instance {{ $labels.instance }} has not been responding for the last 10 minutes."
+
+      - alert: HighErrorRate
+        expr: rate(loki_request_duration_seconds_count{status=~"5.."}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in logs"
+          description: "The error rate in logs is higher than 5 requests per second over the last 5 minutes."

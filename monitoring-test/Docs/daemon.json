@@ -1,0 +1,55 @@
+// /etc/docker/daemon.json
+
+{
+  "log-driver": "json-file",
+  "log-level": "warn",
+  "storage-driver": "overlay2",
+  "data-root": "/var/lib/docker",
+  "bip": "192.168.1.1/24",
+  "default-address-pools": [
+    {
+      "base": "10.10.0.0/16",
+      "size": 24
+    }
+  ],
+  "insecure-registries": [
+    "my-local-registry:5000"
+  ],
+  "registry-mirrors": [
+    "https://mirror.gcr.io"
+  ],
+  "exec-opts": [
+    "native.cgroupdriver=systemd"
+  ],
+  "metrics-addr": "0.0.0.0:9323",
+  "experimental": true,
+  "iptables": true,
+  "ip-masq": false,
+  "dns": [
+    "8.8.8.8",
+    "8.8.4.4"
+  ],
+  "live-restore": true,
+  "max-concurrent-downloads": 10,
+  "max-concurrent-uploads": 5,
+  "no-new-privileges": true,
+  "default-runtime": "runc",
+  "runtimes": {
+    "runc": {
+      "path": "runc"
+    }
+  }
+}
+
+
+// {
+//   "log-driver": "json-file",
+//   "storage-driver": "overlay2",
+//   "data-root": "/var/lib/docker",
+//   "insecure-registries": [
+//     "localhost:5000"
+//   ],
+//   "exec-opts": [
+//     "native.cgroupdriver=systemd"
+//   ]
+// }
