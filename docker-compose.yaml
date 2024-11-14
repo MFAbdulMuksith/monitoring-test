@@ -1,0 +1,150 @@
+version: "3.8"
+
+services:
+  # Prometheus Service
+  prometheus:
+    image: prom/prometheus:v2.40.2
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+      - ./prometheus/data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=90d"
+      - "--web.enable-lifecycle"
+    networks:
+      - monitor
+
+  # Alertmanager Service
+  alertmanager:
+    image: prom/alertmanager:v0.24.0
+    container_name: alertmanager
+    restart: always
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+    networks:
+      - monitor
+
+  # Grafana Service
+  grafana:
+    image: grafana/grafana:9.2.5
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-loki
+    networks:
+      - monitor
+
+  # Node Exporter Service
+  node-exporter:
+    image: prom/node-exporter:v1.4.0
+    container_name: node-exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+    networks:
+      - monitor
+
+  # cAdvisor Service
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.46.0
+    container_name: cadvisor
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitor
+
+  # Blackbox Exporter Service
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.23.0
+    container_name: blackbox-exporter
+    restart: always
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox_exporter/blackbox_exporter-config.yml:/etc/blackbox_exporter/config.yml
+    command:
+      - "--config.file=/etc/blackbox_exporter/config.yml"
+    networks:
+      - monitor
+
+  # Loki Service
+  loki:
+    image: grafana/loki:2.5.0
+    container_name: loki
+    restart: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki:/loki
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitor
+
+  # Promtail Service
+  promtail:
+    image: grafana/promtail:2.5.0
+    container_name: promtail
+    restart: always
+    volumes:
+      - /var/log:/var/log
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
+    command:
+      - -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - monitor
+
+  # Traefik Service
+  traefik:
+    image: traefik:v2.7
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - ./traefik/acme.json:/acme.json
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=your-email@example.com"
+      - "--certificatesresolvers.myresolver.acme.storage=acme.json"
+      - "--api.insecure=true"
+    networks:
+      - monitor
+
+# Networks
+networks:
+  monitor:
+    driver: bridge
