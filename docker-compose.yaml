@@ -43,8 +43,6 @@ services:
       - "3000:3000"
     volumes:
       - ./grafana:/var/lib/grafana
-    environment:
-      - GF_INSTALL_PLUGINS=grafana-loki
     networks:
       - monitor
 
@@ -105,6 +103,8 @@ services:
     volumes:
       - ./loki:/loki
       - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./loki/boltdb-shipper-active:/loki/boltdb-shipper-active
+      - ./loki/boltdb-shipper-cache:/loki/boltdb-shipper-cache
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - monitor
