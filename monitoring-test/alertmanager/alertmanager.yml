@@ -1,0 +1,12 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'opsgenie'
+
+receivers:
+- name: 'opsgenie'
+  opsgenie_configs:
+  - api_key: 'YOUR_OPSGENIE_API_KEY'
+    priority: 'P1'
+    tags: 'environment:production, service:web-app'
